@@ -33,7 +33,9 @@ func resourceRunscopeTest() *schema.Resource {
 			},
 			"default_environment_id": &schema.Schema{
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
+				ForceNew: false,
 			},
 		},
 	}
@@ -50,8 +52,7 @@ func resourceTestCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Failed to create test: %s", err)
 	}
 
-	log.Printf("[DEBUG] test create: %#v", test)
-
+	log.Printf("[DEBUG] This is a debug message")
 	createdTest, err := client.CreateTest(test)
 	if err != nil {
 		return fmt.Errorf("Failed to create test: %s", err)
@@ -59,6 +60,12 @@ func resourceTestCreate(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(createdTest.ID)
 	log.Printf("[INFO] test ID: %s", d.Id())
+	
+	test, err = createTestFromResourceData(d)
+	_, err = client.UpdateTest(test)
+	if err != nil {
+		return fmt.Errorf("Failed to update test: %s", err)
+	}
 
 	return resourceTestRead(d, meta)
 }
@@ -94,7 +101,7 @@ func resourceTestUpdate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error updating test: %s", err)
 	}
 
-	if d.HasChange("description") {
+	if d.HasChange("description") || d.HasChange("default_environment_id"){
 		client := meta.(*runscope.Client)
 		_, err = client.UpdateTest(testFromResource)
 
@@ -136,6 +143,10 @@ func createTestFromResourceData(d *schema.ResourceData) (*runscope.Test, error) 
 
 	if attr, ok := d.GetOk("description"); ok {
 		test.Description = attr.(string)
+	}
+
+	if attr, ok := d.GetOk("default_environment_id"); ok {
+		test.DefaultEnvironmentID = attr.(string)
 	}
 
 	return test, nil

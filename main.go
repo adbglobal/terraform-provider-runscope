@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/hashicorp/terraform/plugin"
-	"github.com/ewilde/terraform-provider-runscope/plugin/providers/runscope"
+	"github.com/adbglobal/terraform-provider-runscope/plugin/providers/runscope"
 )
 
 func main() {
